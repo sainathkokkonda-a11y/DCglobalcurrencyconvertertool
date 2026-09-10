@@ -1,0 +1,271 @@
+<style>
+  .global-curr-container {
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .global-curr-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 480px;
+    margin: 20px auto;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(13, 71, 161, 0.15);
+    border: 2px solid #1976d2;
+    overflow: hidden;
+  }
+  
+  .global-curr-header {
+    background: linear-gradient(135deg, #0d47a1, #1976d2);
+    color: #ffffff;
+    padding: 24px 20px;
+    text-align: center;
+  }
+  
+  .global-curr-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  
+  .global-curr-header p {
+    margin: 6px 0 0 0;
+    font-size: 14px;
+    opacity: 0.9;
+  }
+  
+  .global-curr-body {
+    padding: 24px 20px;
+  }
+  
+  .input-group {
+    margin-bottom: 20px;
+  }
+  
+  .input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0d47a1;
+    margin-bottom: 8px;
+  }
+  
+  .currency-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .curr-select {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    border: 2px solid #bbdefb;
+    border-radius: 8px;
+    outline: none;
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .swap-btn {
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.2s;
+  }
+  
+  .swap-btn:hover {
+    background: #0d47a1;
+    transform: rotate(180deg);
+  }
+  
+  .global-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 16px;
+    border: 2px solid #bbdefb;
+    border-radius: 8px;
+    outline: none;
+    color: #0d47a1;
+    font-weight: 600;
+    box-sizing: border-box;
+  }
+  
+  .global-input:focus, .curr-select:focus {
+    border-color: #1976d2;
+  }
+  
+  .btn-calculate {
+    width: 100%;
+    background: #1976d2;
+    color: #ffffff;
+    border: none;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
+  }
+  
+  .btn-calculate:hover {
+    background: #0d47a1;
+  }
+  
+  .btn-calculate:active {
+    transform: scale(0.98);
+  }
+  
+  .result-box {
+    margin-top: 24px;
+    background: #e3f2fd;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #90caf9;
+    text-align: center;
+  }
+  
+  .converted-value {
+    font-size: 24px;
+    color: #0d47a1;
+    font-weight: bold;
+    margin-top: 5px;
+  }
+  
+  .exchange-rate-info {
+    font-size: 13px;
+    color: #1565c0;
+    margin-top: 8px;
+  }
+</style>
+
+<div class="global-curr-container">
+  <div class="global-curr-card">
+    <div class="global-curr-header">
+      <h2>Global Currency Converter</h2>
+      <p>Convert 160+ World Currencies with Live Rates</p>
+    </div>
+    
+    <div class="global-curr-body">
+      <div class="input-group">
+        <label for="amount">Amount</label>
+        <input type="number" id="amount" class="global-input" placeholder="e.g. 100" value="100">
+      </div>
+
+      <div class="input-group">
+        <label>Currency Exchange</label>
+        <div class="currency-row">
+          <select id="fromCurrency" class="curr-select" onchange="convertCurrency()"></select>
+
+          <button class="swap-btn" onclick="swapCurrencies()" title="Swap Currencies">⇄</button>
+
+          <select id="toCurrency" class="curr-select" onchange="convertCurrency()"></select>
+        </div>
+      </div>
+
+      <button class="btn-calculate" onclick="convertCurrency()">Convert Amount</button>
+
+      <div class="result-box">
+        <div style="font-size: 14px; color: #1565c0; font-weight: 600;">Converted Amount:</div>
+        <div class="converted-value" id="convertedResult">Loading Currencies...</div>
+        <div class="exchange-rate-info" id="rateInfo">Fetching live rates...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let cachedRates = {};
+
+  async function loadCurrencies() {
+    const fromSelect = document.getElementById('fromCurrency');
+    const toSelect = document.getElementById('toCurrency');
+
+    try {
+      // API నుండి 160+ కరెన్సీల జాబితా పొందుతుంది
+      const response = await fetch('https://open.er-api.com/v6/latest/USD');
+      const data = await response.json();
+
+      if (data.result === "success") {
+        cachedRates = data.rates;
+        const currencies = Object.keys(data.rates).sort();
+
+        fromSelect.innerHTML = '';
+        toSelect.innerHTML = '';
+
+        currencies.forEach(curr => {
+          const opt1 = document.createElement('option');
+          opt1.value = curr;
+          opt1.innerText = curr;
+          if (curr === "USD") opt1.selected = true;
+          fromSelect.appendChild(opt1);
+
+          const opt2 = document.createElement('option');
+          opt2.value = curr;
+          opt2.innerText = curr;
+          if (curr === "INR") opt2.selected = true;
+          toSelect.appendChild(opt2);
+        });
+
+        convertCurrency();
+      }
+    } catch (error) {
+      document.getElementById('convertedResult').innerText = "Failed to load currencies.";
+    }
+  }
+
+  async function convertCurrency() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const from = document.getElementById('fromCurrency').value;
+    const to = document.getElementById('toCurrency').value;
+    const resultElement = document.getElementById('convertedResult');
+    const rateInfoElement = document.getElementById('rateInfo');
+
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://open.er-api.com/v6/latest/${from}`);
+      const data = await response.json();
+
+      if (data.result === "success") {
+        const rate = data.rates[to];
+        const convertedAmount = amount * rate;
+
+        resultElement.innerText = `${to} ${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        rateInfoElement.innerText = `1 ${from} = ${rate.toFixed(4)} ${to} (Live Rate)`;
+      }
+    } catch (error) {
+      resultElement.innerText = "Error fetching rate.";
+    }
+  }
+
+  function swapCurrencies() {
+    const fromSelect = document.getElementById('fromCurrency');
+    const toSelect = document.getElementById('toCurrency');
+    
+    const temp = fromSelect.value;
+    fromSelect.value = toSelect.value;
+    toSelect.value = temp;
+
+    convertCurrency();
+  }
+
+  // పేజీ లోడ్ అవ్వగానే 160+ కరెన్సీల జాబితా సెట్ అవుతుంది
+  loadCurrencies();
+</script>

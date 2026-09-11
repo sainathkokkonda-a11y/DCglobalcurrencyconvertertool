@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Currency Converter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="global-curr-container">
+      <div class="global-curr-card">
+        <div class="global-curr-header">
+          <h2>Global Currency Converter</h2>
+          <p>Convert 160+ World Currencies with Live Rates</p>
+        </div>
+        
+        <div class="global-curr-body">
+          <div class="input-group">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" class="global-input" placeholder="e.g. 100" value="100">
+          </div>
+
+          <div class="input-group">
+            <label>Currency Exchange</label>
+            <div class="currency-row">
+              <select id="fromCurrency" class="curr-select" onchange="convertCurrency()"></select>
+
+              <button class="swap-btn" onclick="swapCurrencies()" title="Swap Currencies">⇄</button>
+
+              <select id="toCurrency" class="curr-select" onchange="convertCurrency()"></select>
+            </div>
+          </div>
+
+          <button class="btn-calculate" onclick="convertCurrency()">Convert Amount</button>
+
+          <div class="result-box">
+            <div style="font-size: 14px; color: #1565c0; font-weight: 600;">Converted Amount:</div>
+            <div class="converted-value" id="convertedResult">Loading Currencies...</div>
+            <div class="exchange-rate-info" id="rateInfo">Fetching live rates...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
